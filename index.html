@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<head>
+	<meta charset="UTF-8">
+	<link rel="stylesheet" type="text/css" href="style.css">
+	<title>Chat</title>
+</head>
+<body>
+	<ul id="messages"></ul>
+	<form action="">
+		<input id="m" autocomplete="off" autofocus><button>Wyślij</button>
+	</form>
+
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+	<script>
+		var nickname = prompt("Nick: ", "użytkownik" + Math.floor((Math.random() * 99999)+10000));
+	  $(function(){
+	  	var socket = io();
+	  	socket.emit('client nickname', nickname);
+	  	$('#messages').prepend($('<li>').text("Połączono"));
+	  	$('form').submit(function(){
+	  		var msg = $('#m').val()
+	  		if(msg != ""){
+		  		if(msg.startsWith("/")) socket.emit('chat command', msg);
+		  		else socket.emit('chat message', msg);
+		  		$('#messages').prepend($('<li>').text(nickname + ": " + msg));
+		  		$('#m').val('');
+	  		}
+	  		return false;
+	  	});
+
+	  	socket.on('chat message', function(user, msg){
+	  		$('#messages').prepend($('<li>').text(user + ": " + msg));
+	  	});
+
+	  	socket.on('client connect', function(msg){
+	  		$('#messages').prepend($('<li>').text(msg));
+	  	});
+
+	  	socket.on('client disconnect', function(msg){
+	  		$('#messages').prepend($('<li>').text(msg));
+	  	});
+
+	  	socket.on('chat users', function(users){
+	  		$('#messages').prepend($('<li>').text("Online: " + users));
+	  	});
+
+	  	socket.on('chat command', function(msg){
+	  		$('#messages').prepend($('<li>').text(msg));
+	  	});
+
+	  });
+	</script>
+
+</body>
+</html>
+
